@@ -1,0 +1,9 @@
+node_modules
+
+# Data to be processed and the result
+data
+merged_output.csv
+
+# IDE
+.idea/
+.vscode
