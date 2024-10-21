@@ -20,7 +20,7 @@ function loadCSV(filePath) {
             skipEmptyLines: true
         }).data;
 
-        return data.map(row => ({ ...row, Tier: tier }));
+        return data.map(row => ({...row, Tier: tier}));
     } catch (error) {
         console.error(`Error reading file ${filePath}: ${error.message}`);
         return [];
@@ -36,7 +36,7 @@ const csvFiles = [
 let mergedData = csvFiles.flatMap(loadCSV);
 
 // Load business impact data
-const businessImpactData = loadCSV('./data/example/AllCompanies-filtered.csv');
+const businessImpactData = loadCSV('./data/Lloyds/Lloyds-AllCompanies-2024-10-16.csv');
 
 // Create Business Impact column by matching domains
 const businessImpactMap = Object.fromEntries(
@@ -48,7 +48,7 @@ mergedData = mergedData.map(row => ({
 }));
 
 // Remove duplicate domains, keeping the one with the highest tier
-const tierPriority = { platinum: 3, gold: 2, silver: 1 };
+const tierPriority = {platinum: 3, gold: 2, silver: 1};
 const domainMap = {};
 
 mergedData.forEach(row => {
@@ -106,6 +106,9 @@ function mapTagsAndCreateColumns(row) {
 // Apply mapping to add 'Likelihood', 'Status', and 'Lifecycle' columns
 const mappedData = uniqueData.map(mapTagsAndCreateColumns);
 
+console.log('Lifecycle');
+console.log(mappedData.map(({Lifecycle}) => Lifecycle));
+
 // Function to rename and map the columns as specified, and remove extras
 function mapColumns(row) {
     return {
@@ -119,6 +122,13 @@ function mapColumns(row) {
     };
 }
 
+function mapLifecycleColumns(row) {
+    return {
+        "Domain": row.DOMAIN,
+        "Lifecycle": row.Lifecycle
+    };
+}
+
 // Apply mapping to rename columns and remove extras
 const finalData = mappedData.map(mapColumns);
 
@@ -129,4 +139,16 @@ try {
     console.log('Mapped and filtered CSV file saved as "merged_output.csv"');
 } catch (error) {
     console.error(`Error writing CSV file: ${error.message}`);
+}
+
+// Create a separate CSV with rows containing Lifecycle values not undefined or "assess"
+const lifecycleData = mappedData.map(mapLifecycleColumns);
+
+// Save the lifecycle output to a CSV file
+const lifecycleCsvOutput = Papa.unparse(lifecycleData);
+try {
+    fs.writeFileSync('lifecycle_output.csv', lifecycleCsvOutput);
+    console.log('Lifecycle CSV file saved as "lifecycle_output.csv"');
+} catch (error) {
+    console.error(`Error writing Lifecycle CSV file: ${error.message}`);
 }
